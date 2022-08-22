@@ -20,7 +20,7 @@ def find_nearest(array, value):
     idx = (np.abs(array - value)).argmin()
     return array[idx]
 
-def assign_storey(ifc_base, ifc_geometry_path, output_path):
+def assign_storey(ifc_base, ifc_geometry, output_path):
     settings = ifcopenshell.geom.settings()
     settings.set(settings.USE_WORLD_COORDS, True)
     settings.set(settings.CONVERT_BACK_UNITS, True)
@@ -29,7 +29,7 @@ def assign_storey(ifc_base, ifc_geometry_path, output_path):
     
     #ifc_base = ifcopenshell.open(ifc_base_path)
     base_storeys = ifc_base.by_type('IfcBuildingStorey')
-    ifc_geometry = ifcopenshell.open(ifc_geometry_path)
+    #ifc_geometry = ifcopenshell.open(ifc_geometry_path)
     geometry_elements = ifc_geometry.by_type('IfcBuildingElementProxy')
     levels = []
     
