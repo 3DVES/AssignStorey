@@ -39,10 +39,13 @@ def assign_storey(ifc_base, ifc_geometry, output_path):
         if z_level not in levels:
             levels.append(z_level)
     for element in geometry_elements:
-        shape = ifcopenshell.geom.create_shape(settings, element)
-        verts = shape.geometry.verts
-        z_coords = [verts[j+2] for j in range(0,len(verts),3)]
-        z_level = min(list(set(z_coords)))
+        try:
+            shape = ifcopenshell.geom.create_shape(settings, element)
+            verts = shape.geometry.verts
+            z_coords = [verts[j+2] for j in range(0,len(verts),3)]
+            z_level = min(list(set(z_coords)))
+        except:
+            z_level = element.Representation.Representations[0].Items[0].MappingSource.MappedRepresentation.Items[0].Outer.CfsFaces[0].Bounds[0].Bound.Polygon[0].Coordinates[-1]
         z_level = find_nearest(levels, z_level)
         element = ifc_base.add(element)
         globals()["container_"+str(z_level).replace('.','_')].append(element)
