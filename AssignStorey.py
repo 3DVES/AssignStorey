@@ -55,5 +55,6 @@ def assign_storey(ifc_base, ifc_geometry, output_path):
         container_SpatialStructure = ifc_base.createIfcRelContainedInSpatialStructure(create_guid() , owner_history)
         container_SpatialStructure.RelatingStructure = base_storeys[index]
         container_SpatialStructure.RelatedElements = globals()["container_"+str(z_level).replace('.','_')]
+        ifc_base.create_entity('IfcRelAggregates', ifcopenshell.guid.new(), owner_history, '', '', base_storeys[index], globals()["container_"+str(z_level).replace('.','_')])
     return(ifc_base)
     #ifc_base.write(output_path)
