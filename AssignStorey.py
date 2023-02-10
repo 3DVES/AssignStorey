@@ -39,38 +39,38 @@ def assign_storey(ifc_base, ifc_geometry, element_types=['IfcBuildingElementProx
     levels = []
 
     for index in range(len(base_storeys)):
-        z_level = globalCoordenate(base_storeys[index].ObjectPlacement)[2]
+        z_level = round(globalCoordenate(base_storeys[index].ObjectPlacement)[2])
         globals()["container_"+str(z_level).replace('.', '_')] = []
         if z_level not in levels:
             levels.append(z_level)
     levels = np.array(levels)
+    print(levels)
     for element in geometry_elements:
         try:
             shape = ifcopenshell.geom.create_shape(settings, element)
             verts = shape.geometry.verts
             z_coords = [verts[j+2] for j in range(0, len(verts), 3)]
-            z_level = min(list(set(z_coords)))
+            z_level = round(min(list(set(z_coords))))
         except:
             try:
-                z_level = element.Representation.Representations[0].Items[0].MappingSource.MappedRepresentation.Items[
-                    0].Outer.CfsFaces[0].Bounds[0].Bound.Polygon[0].Coordinates[-1]
+                z_level = round(element.Representation.Representations[0].Items[0].MappingSource.MappedRepresentation.Items[
+                            0].Outer.CfsFaces[0].Bounds[0].Bound.Polygon[0].Coordinates[-1])
             except:
-                z_level = element.ObjectPlacement.RelativePlacement.Location.Coordinates[-1]
+                z_level = round(element.ObjectPlacement.RelativePlacement.Location.Coordinates[-1])
         try:
             # find_nearest(levels, z_level)
-            z_level = levels[(levels - z_level) < 0][-1]
+            z_level_f = levels[(levels - z_level) < 0][-1]
         except:
-            z_level = levels[0]
+            z_level_f = levels[0]
         element = ifc_base.add(element)
-        globals()["container_"+str(z_level).replace('.', '_')].append(element)
+        globals()["container_"+str(z_level_f).replace('.', '_')].append(element)
     for index in range(len(base_storeys)):
-        z_level = globalCoordenate(base_storeys[index].ObjectPlacement)[2]
+        z_level = round(globalCoordenate(base_storeys[index].ObjectPlacement)[2])
         owner_history = base_storeys[index].OwnerHistory
         container_SpatialStructure = ifc_base.createIfcRelContainedInSpatialStructure(
             create_guid(), owner_history)
         container_SpatialStructure.RelatingStructure = base_storeys[index]
-        container_SpatialStructure.RelatedElements = globals(
-        )["container_"+str(z_level).replace('.', '_')]
+        container_SpatialStructure.RelatedElements = globals()["container_"+str(z_level).replace('.', '_')]
         ifc_base.create_entity('IfcRelAggregates', ifcopenshell.guid.new(
         ), owner_history, '', '', base_storeys[index], globals()["container_"+str(z_level).replace('.', '_')])
     return (ifc_base)
