@@ -61,7 +61,7 @@ def assign_storey(ifc_base, ifc_geometry, element_types=['IfcBuildingElementProx
             # find_nearest(levels, z_level)
             z_level_f = levels[(levels - z_level) < 0][-1]
         except:
-            z_level_f = levels[0]
+            z_level_f = levels[-1]
         element = ifc_base.add(element)
         globals()["container_"+str(z_level_f).replace('.', '_')].append(element)
     for index in range(len(base_storeys)):
