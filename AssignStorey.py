@@ -58,6 +58,8 @@ def assign_storey(ifc_base, ifc_geometry, element_types=['IfcBuildingElementProx
             try:
                 z_level = round(element.Representation.Representations[0].Items[0].MappingSource.MappedRepresentation.Items[
                     0].Outer.CfsFaces[0].Bounds[0].Bound.Polygon[0].Coordinates[-1])
+                if element.Representation.Representations[0].Items[0].MappingTarget.LocalOrigin:
+                    z_level += element.Representation.Representations[0].Items[0].MappingTarget.LocalOrigin.Coordinates[2]
             except:
                 z_level = round(
                     element.ObjectPlacement.RelativePlacement.Location.Coordinates[-1])
