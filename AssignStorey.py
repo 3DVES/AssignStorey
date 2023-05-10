@@ -27,7 +27,7 @@ def assign_storey(ifc_base, ifc_geometry, element_types=['IfcBuildingElementProx
     settings = ifcopenshell.geom.settings()
     settings.set(settings.USE_WORLD_COORDS, True)
     settings.set(settings.CONVERT_BACK_UNITS, True)
-
+    locations = {}
     def create_guid(): return ifcopenshell.guid.compress(uuid.uuid1().hex)
 
     #ifc_base = ifcopenshell.open(ifc_base_path)
@@ -40,12 +40,14 @@ def assign_storey(ifc_base, ifc_geometry, element_types=['IfcBuildingElementProx
         if hasattr(ifc_geometry, 'by_type'):
             geometry_elements.extend(ifc_geometry.by_type(kind))
     levels = []
+    storeys = []
     for index in range(len(base_storeys)):
         z_level = round(globalCoordenate(
             base_storeys[index].ObjectPlacement)[2])
         globals()["container_"+str(z_level).replace('.', '_')] = []
         if z_level not in levels:
             levels.append(z_level)
+            storeys.append(base_storeys[index])
     levels = np.array(levels)
     print(levels)
     for element in geometry_elements:
@@ -69,6 +71,18 @@ def assign_storey(ifc_base, ifc_geometry, element_types=['IfcBuildingElementProx
         except:
             z_level_f = levels[-1]
         element = ifc_base.add(element)
+        if not(element.ObjectPlacement):
+            altitude = levels - z_level
+            altitude = np.where(altitude<0)[-1][-1]
+            if z_level not in locations.keys():
+                location = ifc_base.create_entity(**{'type': 'IfcCartesianPoint','Coordinates': (0.0, 0.0, -float(levels[altitude]))})
+                IfcAxis2Placement3D = ifc_base.create_entity(**{'type': 'IfcAxis2Placement3D','Location': location})
+                locations[z_level] = IfcAxis2Placement3D
+            else:
+                IfcAxis2Placement3D = locations[z_level]
+            buildingLoc = base_storeys[altitude].ObjectPlacement
+            loc = ifc_base.create_entity(**{'type': 'IfcLocalPlacement', 'PlacementRelTo': buildingLoc, 'RelativePlacement': IfcAxis2Placement3D})
+            element.ObjectPlacement = loc
         globals()["container_"+str(z_level_f).replace('.', '_')].append(element)
     for index in range(len(base_storeys)):
         z_level = round(globalCoordenate(
@@ -77,8 +91,7 @@ def assign_storey(ifc_base, ifc_geometry, element_types=['IfcBuildingElementProx
         container_SpatialStructure = ifc_base.createIfcRelContainedInSpatialStructure(
             create_guid(), owner_history)
         container_SpatialStructure.RelatingStructure = base_storeys[index]
-        container_SpatialStructure.RelatedElements = globals(
-        )["container_"+str(z_level).replace('.', '_')]
+        container_SpatialStructure.RelatedElements = globals()["container_"+str(z_level).replace('.', '_')]
         ifc_base.create_entity('IfcRelAggregates', ifcopenshell.guid.new(
         ), owner_history, '', '', base_storeys[index], globals()["container_"+str(z_level).replace('.', '_')])
     return (ifc_base)
