@@ -73,7 +73,10 @@ def assign_storey(ifc_base, ifc_geometry, element_types=['IfcBuildingElementProx
         element = ifc_base.add(element)
         if not(element.ObjectPlacement):
             altitude = levels - z_level
-            altitude = np.where(altitude<0)[-1][-1]
+            try:
+                altitude = np.where(altitude<0)[-1][-1]
+            except:
+                altitude = 0
             if z_level not in locations.keys():
                 location = ifc_base.create_entity(**{'type': 'IfcCartesianPoint','Coordinates': (0.0, 0.0, -float(levels[altitude]))})
                 IfcAxis2Placement3D = ifc_base.create_entity(**{'type': 'IfcAxis2Placement3D','Location': location})
