@@ -2,7 +2,10 @@ import uuid
 import ifcopenshell
 import ifcopenshell.geom
 import numpy as np
-from BIMEP3DVESUtils.GeometryUtils import moveElement
+try:
+    from BIMEP3DVESUtils.GeometryUtils import moveElement
+except:
+    from ..BIMEP3DVESUtils.GeometryUtils import moveElement
 
 def globalCoordenate(objectPlacement):
     x = 0
