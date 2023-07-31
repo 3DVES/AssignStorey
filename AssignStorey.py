@@ -2,12 +2,14 @@ import uuid
 import ifcopenshell
 import ifcopenshell.geom
 import numpy as np
-
+from BIMEP3DVESUtils.GeometryUtils import moveElement
 
 def globalCoordenate(objectPlacement):
     x = 0
     y = 0
     z = 0
+    if objectPlacement == None:
+        return [x, y, z]
     x, y, z = objectPlacement.RelativePlacement.Location.Coordinates
     if objectPlacement.PlacementRelTo != None:
         xx, yy, zz = globalCoordenate(objectPlacement.PlacementRelTo)
@@ -49,6 +51,7 @@ def assign_storey(ifc_base, ifc_geometry, element_types=['IfcBuildingElementProx
             levels.append(z_level)
             storeys.append(base_storeys[index])
     levels = np.array(levels)
+    globcoord = {i.GlobalId:globalCoordenate(i.ObjectPlacement) if globalCoordenate(i.ObjectPlacement) != None else [0,0,0] for i in geometry_elements}
     print(levels)
     for element in geometry_elements:
         try:
@@ -97,5 +100,10 @@ def assign_storey(ifc_base, ifc_geometry, element_types=['IfcBuildingElementProx
         container_SpatialStructure.RelatedElements = globals()["container_"+str(z_level).replace('.', '_')]
         ifc_base.create_entity('IfcRelAggregates', ifcopenshell.guid.new(
         ), owner_history, '', '', base_storeys[index], globals()["container_"+str(z_level).replace('.', '_')])
+    # Avoid modification of position
+    for element in geometry_elements:
+        if globalCoordenate(element.ObjectPlacement) != globcoord[element.GlobalId]:
+            displ = np.array(globcoord[element.GlobalId]).reshape(3) - np.array(globalCoordenate(element.ObjectPlacement)).reshape(3)
+            moveElement(element, float(displ[0]), float(displ[1]), float(displ[2]))
     return (ifc_base)
     # ifc_base.write(output_path)
