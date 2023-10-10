@@ -90,8 +90,12 @@ def assign_storey(ifc_base, ifc_geometry, element_types=['IfcBuildingElementProx
             else:
                 IfcAxis2Placement3D = locations[z_level]
             buildingLoc = base_storeys[altitude].ObjectPlacement
+            if buildingLoc == None:
+                buildingLoc = ifc_base.by_type('IfcBuilding')[0].ObjectPlacement
             loc = ifc_base.create_entity(**{'type': 'IfcLocalPlacement', 'PlacementRelTo': buildingLoc, 'RelativePlacement': IfcAxis2Placement3D})
             element.ObjectPlacement = loc
+        if None == element.ObjectPlacement.PlacementRelTo:
+            element.ObjectPlacement.PlacementRelTo = ifc_base.by_type('IfcBuilding')[0].ObjectPlacement
         globals()["container_"+str(z_level_f).replace('.', '_')].append(element)
     for index in range(len(base_storeys)):
         z_level = round(globalCoordenate(
